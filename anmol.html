@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nussinov Algorithm Visualization</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+    }
+    .container {
+        max-width: 1600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        color: #333;
+        text-align: center;
+    }
+    .base {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #333;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 20px;
+        font-size: 20px;
+        margin-right: 10px;
+        background-color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .base:hover {
+        background-color: #f0f0f0;
+    }
+    #sequence-container {
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    button {
+        padding: 10px 20px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #555;
+    }
+    textarea {
+        width: 100%;
+        height: 100px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        resize: vertical;
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nussinov Algorithm Visualization</h1>
+        <input type="text" id="inputSequence" placeholder="Enter RNA Sequence">
+        <button onclick="visualizeSequence()">Visualize Sequence</button>
+        <br><br>
+        <div id="sequence-container"></div>
+        <br>
+        <button onclick="runNussinov()">Run Nussinov Algorithm</button>
+        <br><br>
+        <textarea id="output" placeholder="Output" readonly></textarea>
+    </div>
+
+    <script>
+        let bases = [];
+        let sequenceContainer = document.getElementById('sequence-container');
+        let inputSequence = document.getElementById('inputSequence');
+
+        function visualizeSequence() {
+            const sequence = inputSequence.value.trim().toUpperCase();
+            if (!isValidSequence(sequence)) {
+                alert('Invalid RNA sequence! Only A, C, G, U are allowed.');
+                return;
+            }
+            bases = sequence.split('');
+            renderSequence();
+        }
+
+        function isValidSequence(sequence) {
+            const validBases = /^[ACGU]+$/;
+            return validBases.test(sequence);
+        }
+
+        function renderSequence() {
+            sequenceContainer.innerHTML = '';
+            bases.forEach(base => {
+                const baseElement = document.createElement('div');
+                baseElement.className = 'base';
+                baseElement.textContent = base;
+                sequenceContainer.appendChild(baseElement);
+            });
+        }
+
+        function nussinovAlgorithm(sequence) {
+            const n = sequence.length;
+            let s = 'P' + sequence;
+            let dp = new Array(n + 1).fill().map(() => new Array(n + 1).fill(0));
+
+            for (let k = 5; k <= n; k++) {
+                for (let i = 1; i <= n - k; i++) {
+                    let j = i + k;
+                    dp[i][j] = dp[i][j - 1];
+
+                    for (let t = i; t < j - 4; t++) {
+                        if ((s[j] === 'A' && s[t] === 'U') || (s[j] === 'C' && s[t] === 'G') ||
+                            (s[j] === 'U' && s[t] === 'A') || (s[j] === 'G' && s[t] === 'C')) {
+                            dp[i][j] = Math.max(dp[i][j], 1 + (dp[i][t - 1] + dp[t + 1][j - 1]));
+                        }
+                    }
+                }
+            }
+            return dp[1][n];
+        }
+
+        function runNussinov() {
+            const result = nussinovAlgorithm(bases.join(''));
+            document.getElementById('output').value = `Maximum Number of Base Pairs: ${result}`;
+        }
+    </script>
+</body>
+</html>
